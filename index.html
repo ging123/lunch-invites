@@ -50,16 +50,13 @@
 </head>
 <body class="bg-gradient-to-br from-blue-400 via-purple-500 to-purple-600">
     <div id="app" class="min-h-screen p-4">
-        <!-- Header -->
         <div class="text-center mb-6">
             <h1 class="text-4xl font-bold text-white mb-2">🍽️ Lunch Invitations</h1>
             <p class="text-blue-100">Easy lunch planning for your friend group</p>
         </div>
 
-        <!-- Main Container -->
         <div class="max-w-md mx-auto space-y-4">
             
-            <!-- Welcome Screen -->
             <div id="welcomeScreen">
                 <div class="card rounded-xl p-6 text-center">
                     <div class="text-6xl mb-4">🥪</div>
@@ -87,7 +84,6 @@
                 </div>
             </div>
 
-            <!-- Create Invite Form -->
             <div id="createScreen" class="hidden">
                 <div class="card rounded-xl p-6">
                     <div class="flex items-center justify-between mb-4">
@@ -144,7 +140,6 @@
                 </div>
             </div>
 
-            <!-- Invite Created -->
             <div id="createdScreen" class="hidden">
                 <div class="card rounded-xl p-6 text-center">
                     <div class="text-4xl mb-4">🎉</div>
@@ -169,7 +164,6 @@
                 </div>
             </div>
 
-            <!-- Join Screen -->
             <div id="joinScreen" class="hidden">
                 <div class="card rounded-xl p-6">
                     <div class="flex items-center justify-between mb-4">
@@ -191,17 +185,14 @@
                 </div>
             </div>
 
-            <!-- RSVP Screen -->
             <div id="rsvpScreen" class="hidden">
                 <div class="space-y-4">
-                    <!-- Lunch Details -->
                     <div class="card rounded-xl p-6">
                         <div class="text-center mb-4">
                             <div class="text-4xl mb-2">🍽️</div>
                             <h2 id="lunchTitleDisplay" class="text-xl font-bold text-gray-800"></h2>
                             <p class="text-gray-600">by <span id="organizerDisplay"></span></p>
                             
-                            <!-- Lunch Code Display -->
                             <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-3 mb-3">
                                 <div class="text-blue-700 text-xs font-medium mb-1">📋 Lunch Code</div>
                                 <div id="codeDisplay" class="text-blue-800 font-bold text-lg tracking-wider"></div>
@@ -228,7 +219,6 @@
                             </div>
                         </div>
                         
-                        <!-- RSVP Form -->
                         <div id="rsvpForm" class="border-t pt-4">
                             <h3 class="font-semibold text-gray-800 mb-3">Will you join us?</h3>
                             
@@ -254,14 +244,12 @@
                             </div>
                         </div>
                         
-                        <!-- Success Message -->
                         <div id="rsvpSuccess" class="hidden text-center py-4">
                             <div class="text-3xl mb-2">🎉</div>
                             <h3 class="font-bold text-gray-800">RSVP Submitted!</h3>
                         </div>
                     </div>
                     
-                    <!-- Attendees List -->
                     <div class="card rounded-xl p-4">
                         <h3 class="font-semibold text-gray-800 mb-3">👥 Who's Coming?</h3>
                         <div id="attendeesList"></div>
@@ -270,7 +258,6 @@
                         </div>
                     </div>
                     
-                    <!-- Share Section -->
                     <div class="card rounded-xl p-4">
                         <h3 class="font-semibold text-gray-800 mb-3 text-center">📤 Share This Lunch</h3>
                         
@@ -294,13 +281,41 @@
         </div>
     </div>
 
-    <script>
-        console.log('🍽️ Starting Simple Lunch App...');
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js" type="module"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js" type="module"></script>
+
+    <script type="module">
+        // Import functions from the Firebase SDKs
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { getFirestore, collection, doc, setDoc, query, where, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+
+        // ===================================================================
+        // ⬇️ PASTE YOUR FIREBASE CONFIGURATION OBJECT HERE ⬇️
+        // ===================================================================
+        const firebaseConfig = {
+            // apiKey: "...",
+            // authDomain: "...",
+            // projectId: "...",
+            // storageBucket: "...",
+            // messagingSenderId: "...",
+            // appId: "..."
+        };
+
+        // Initialize Firebase
+        const firebaseApp = initializeApp(firebaseConfig);
+        const db = getFirestore(firebaseApp);
+        console.log('🔥 Firebase initialized successfully!');
         
-        // Simple app state
+        // ===================================================================
+        // ⬆️ END OF FIREBASE CONFIGURATION ⬆️
+        // ===================================================================
+
+
+        // App state
         let currentInvite = null;
         let selectedResponse = null;
-        
+        let unsubscribeRealtimeListener = null; // To manage the real-time listener
+
         // Show/hide screens
         function showScreen(screenId) {
             const screens = ['welcomeScreen', 'createScreen', 'createdScreen', 'joinScreen', 'rsvpScreen'];
@@ -310,42 +325,52 @@
             document.getElementById(screenId).classList.remove('hidden');
         }
         
-        // Generate invite code
+        // Generate a random 3-character code
         function generateCode() {
             return 'LUNCH' + Math.random().toString(36).substr(2, 3).toUpperCase();
         }
         
-        // Generate invite ID
+        // Generate a unique ID for the invite document in Firestore
         function generateId() {
             return 'invite_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
         }
         
-        // Save invite to localStorage
-        function saveInvite(invite) {
-            const invites = JSON.parse(localStorage.getItem('lunchInvites') || '[]');
-            const existingIndex = invites.findIndex(i => i.id === invite.id);
-            
-            if (existingIndex >= 0) {
-                invites[existingIndex] = invite;
-            } else {
-                invites.push(invite);
+        // NEW: Save invite to Firebase Firestore
+        async function saveInvite(invite) {
+            try {
+                const inviteRef = doc(db, "invites", invite.id);
+                // Using setDoc with merge will create or update the document
+                await setDoc(inviteRef, invite, { merge: true });
+                console.log("Invite saved to Firebase:", invite.id);
+            } catch (error) {
+                console.error("Error saving invite:", error);
+                alert("Could not save the invite. Please check your connection.");
             }
-            
-            localStorage.setItem('lunchInvites', JSON.stringify(invites));
         }
         
-        // Get invite by code
-        function getInviteByCode(code) {
-            const invites = JSON.parse(localStorage.getItem('lunchInvites') || '[]');
-            return invites.find(invite => invite.code === code);
+        // NEW: Get invite from Firebase Firestore by code
+        async function getInviteByCode(code) {
+            const q = query(collection(db, "invites"), where("code", "==", code));
+            try {
+                const querySnapshot = await getDocs(q);
+                if (querySnapshot.empty) {
+                    return null; // No invite found with this code
+                }
+                // Return the data from the first document found
+                return querySnapshot.docs[0].data();
+            } catch (error) {
+                console.error("Error fetching invite:", error);
+                alert("Could not find the invite. Please check your connection.");
+                return null;
+            }
         }
         
-        // Update attendees display
+        // Update attendees display (no changes needed here)
         function updateAttendeesList() {
             const container = document.getElementById('attendeesList');
             const noAttendees = document.getElementById('noAttendees');
             
-            if (!currentInvite.attendees || currentInvite.attendees.length === 0) {
+            if (!currentInvite || !currentInvite.attendees || currentInvite.attendees.length === 0) {
                 container.innerHTML = '';
                 noAttendees.style.display = 'block';
                 return;
@@ -358,6 +383,11 @@
                 maybe: currentInvite.attendees.filter(a => a.response === 'maybe'),
                 no: currentInvite.attendees.filter(a => a.response === 'no')
             };
+
+            // Sort each group alphabetically by name
+            Object.keys(grouped).forEach(key => {
+                grouped[key].sort((a, b) => a.name.localeCompare(b.name));
+            });
             
             let html = '';
             
@@ -400,8 +430,8 @@
             document.getElementById('backToWelcome').addEventListener('click', () => showScreen('welcomeScreen'));
             document.getElementById('backFromJoin').addEventListener('click', () => showScreen('welcomeScreen'));
             
-            // Create invite
-            document.getElementById('createForm').addEventListener('submit', function(e) {
+            // MODIFIED: Create invite (now an async function)
+            document.getElementById('createForm').addEventListener('submit', async function(e) {
                 e.preventDefault();
                 
                 const invite = {
@@ -417,7 +447,7 @@
                     created: new Date().toISOString()
                 };
                 
-                saveInvite(invite);
+                await saveInvite(invite); // Await the save operation
                 currentInvite = invite;
                 
                 document.getElementById('inviteCode').textContent = invite.code;
@@ -436,45 +466,39 @@
                 }
             });
             
-            document.getElementById('viewInvite').addEventListener('click', () => showRSVPScreen());
+            document.getElementById('viewInvite').addEventListener('click', () => showRSVPScreen(currentInvite.code));
             document.getElementById('createAnother').addEventListener('click', () => showScreen('welcomeScreen'));
             
-            // Join invite
-            document.getElementById('findLunch').addEventListener('click', function() {
+            // MODIFIED: Join invite (now an async function)
+            document.getElementById('findLunch').addEventListener('click', async function() {
                 const code = document.getElementById('joinCode').value.trim().toUpperCase();
                 if (!code) {
                     alert('Please enter a lunch code');
                     return;
                 }
                 
-                const invite = getInviteByCode(code);
+                const invite = await getInviteByCode(code); // Await the fetch operation
                 if (!invite) {
                     alert('Lunch code not found. Please check and try again.');
                     return;
                 }
                 
                 currentInvite = invite;
-                showRSVPScreen();
+                showRSVPScreen(currentInvite.code);
             });
             
             // RSVP selection
             ['Yes', 'Maybe', 'No'].forEach(response => {
                 document.getElementById(`rsvp${response}`).addEventListener('click', function() {
                     selectedResponse = response.toLowerCase();
-                    
-                    // Reset all buttons
-                    document.querySelectorAll('#rsvpForm button').forEach(btn => {
-                        btn.classList.remove('ring-4', 'ring-white', 'ring-opacity-50');
-                    });
-                    
-                    // Highlight selected
+                    document.querySelectorAll('#rsvpForm button').forEach(btn => btn.classList.remove('ring-4', 'ring-white', 'ring-opacity-50'));
                     this.classList.add('ring-4', 'ring-white', 'ring-opacity-50');
                     document.getElementById('submitRSVP').classList.remove('hidden');
                 });
             });
             
-            // Submit RSVP
-            document.getElementById('submitRSVP').addEventListener('click', function() {
+            // MODIFIED: Submit RSVP (now an async function)
+            document.getElementById('submitRSVP').addEventListener('click', async function() {
                 const name = document.getElementById('attendeeName').value.trim();
                 
                 if (!name) {
@@ -489,7 +513,6 @@
                 
                 if (!currentInvite.attendees) currentInvite.attendees = [];
                 
-                // Check if already RSVP'd
                 const existingIndex = currentInvite.attendees.findIndex(a => a.name.toLowerCase() === name.toLowerCase());
                 
                 const attendee = {
@@ -504,20 +527,19 @@
                     currentInvite.attendees.push(attendee);
                 }
                 
-                saveInvite(currentInvite);
-                updateAttendeesList();
+                await saveInvite(currentInvite); // Save the updated invite to Firestore
                 
-                // Show success
                 document.getElementById('rsvpForm').classList.add('hidden');
                 document.getElementById('rsvpSuccess').classList.remove('hidden');
                 
                 setTimeout(() => {
                     document.getElementById('rsvpForm').classList.remove('hidden');
                     document.getElementById('rsvpSuccess').classList.add('hidden');
+                    document.getElementById('attendeeName').value = '';
                 }, 3000);
             });
             
-            // Share invite
+            // Share invite actions (no changes needed)
             document.getElementById('shareInvite').addEventListener('click', async function() {
                 const url = `${window.location.origin}${window.location.pathname}?code=${currentInvite.code}`;
                 try {
@@ -529,7 +551,6 @@
                 }
             });
             
-            // Copy code button
             document.getElementById('copyCodeBtn').addEventListener('click', async function() {
                 try {
                     await navigator.clipboard.writeText(currentInvite.code);
@@ -540,7 +561,6 @@
                 }
             });
             
-            // Copy share code button
             document.getElementById('copyShareCode').addEventListener('click', async function() {
                 try {
                     await navigator.clipboard.writeText(currentInvite.code);
@@ -552,47 +572,119 @@
                 }
             });
             
-            // Check URL for code parameter
-            const urlParams = new URLSearchParams(window.location.search);
-            const code = urlParams.get('code');
-            if (code) {
-                const invite = getInviteByCode(code);
-                if (invite) {
-                    currentInvite = invite;
-                    showRSVPScreen();
+            // MODIFIED: Check URL for invite code on page load
+            async function checkUrlForCode() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const code = urlParams.get('code');
+                if (code) {
+                    console.log(`Code found in URL: ${code}. Fetching invite...`);
+                    const invite = await getInviteByCode(code.toUpperCase());
+                    if (invite) {
+                        currentInvite = invite;
+                        showRSVPScreen(currentInvite.code);
+                    } else {
+                        alert(`Could not find an invite with the code "${code}".`);
+                    }
                 }
             }
-            
+
+            checkUrlForCode();
             console.log('✅ Simple Lunch App ready!');
         });
         
-        // Show RSVP screen
-        function showRSVPScreen() {
-            // Populate details
+        // MODIFIED: Show RSVP screen and set up real-time listener
+        function showRSVPScreen(code) {
+            // Detach any previous listener to prevent memory leaks
+            if (unsubscribeRealtimeListener) {
+                unsubscribeRealtimeListener();
+            }
+
+            // Find the correct document ID for the given code.
+            // This is needed because onSnapshot listens to a document reference.
+            const q = query(collection(db, "invites"), where("code", "==", code));
+            getDocs(q).then(querySnapshot => {
+                if (querySnapshot.empty) {
+                    console.error("No invite found to listen to.");
+                    return;
+                }
+                const inviteDoc = querySnapshot.docs[0];
+                currentInvite = inviteDoc.data();
+
+                // Populate the screen with initial data
+                populateRsvpScreen();
+
+                // NEW: Attach a real-time listener
+                const inviteRef = doc(db, "invites", inviteDoc.id);
+                unsubscribeRealtimeListener = onSnapshot(inviteRef, (doc) => {
+                    console.log("⚡ Real-time update received!");
+                    if (doc.exists()) {
+                        currentInvite = doc.data();
+                        populateRsvpScreen(); // Re-populate screen with fresh data
+                    } else {
+                        alert("This invite may have been deleted.");
+                        showScreen('welcomeScreen');
+                    }
+                });
+
+                showScreen('rsvpScreen');
+            });
+        }
+        
+        // Helper function to populate the RSVP screen details
+        function populateRsvpScreen() {
+            if (!currentInvite) return;
+
             document.getElementById('lunchTitleDisplay').textContent = currentInvite.title;
             document.getElementById('organizerDisplay').textContent = currentInvite.organizer;
             
-            // Display lunch code in multiple places
             document.getElementById('codeDisplay').textContent = currentInvite.code;
             document.getElementById('shareCodeDisplay').textContent = currentInvite.code;
             
-            const date = new Date(currentInvite.date + 'T' + currentInvite.time);
-            document.getElementById('dateTimeDisplay').textContent = 
-                date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) +
-                ' at ' + date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+            // Gracefully handle potential invalid date/time values
+            try {
+                const date = new Date(currentInvite.date + 'T' + currentInvite.time);
+                document.getElementById('dateTimeDisplay').textContent = 
+                    date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) + 
+                    ' at ' + date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+            } catch (e) {
+                document.getElementById('dateTimeDisplay').textContent = "Invalid date/time";
+            }
             
             document.getElementById('locationDisplay').textContent = currentInvite.location;
             
             if (currentInvite.message) {
                 document.getElementById('messageText').textContent = currentInvite.message;
                 document.getElementById('messageDisplay').classList.remove('hidden');
+            } else {
+                document.getElementById('messageDisplay').classList.add('hidden');
             }
             
             updateAttendeesList();
-            showScreen('rsvpScreen');
         }
-        
-        console.log('🚀 Simple Lunch App loaded successfully!');
+
     </script>
 </body>
+<script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-analytics.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  const firebaseConfig = {
+    apiKey: "AIzaSyBfHQlwSpMfGrYGLNLrIZUSZp89EueIvVY",
+    authDomain: "lunch-app-46e65.firebaseapp.com",
+    projectId: "lunch-app-46e65",
+    storageBucket: "lunch-app-46e65.firebasestorage.app",
+    messagingSenderId: "828451362049",
+    appId: "1:828451362049:web:5c6e1dbc7489c0a686b700",
+    measurementId: "G-R43JT2GY0M"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+</script>
 </html>
