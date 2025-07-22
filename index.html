@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🍽️ Lunch Invitations</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         
@@ -69,6 +74,20 @@
         .attendee-item:hover {
             background-color: rgba(59, 130, 246, 0.05);
         }
+        
+        .realtime-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background-color: #22c55e;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-blue-400 via-purple-500 to-purple-600">
@@ -89,13 +108,13 @@
                     <h2 class="text-2xl font-bold text-gray-800 mb-2">Plan Your Next Lunch!</h2>
                     <p class="text-gray-600 mb-6">Create an invitation, share with friends, and see who's joining</p>
                     
-                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-6">
-                        <div class="text-blue-800 text-sm font-medium mb-1">💡 How It Works</div>
-                        <div class="text-blue-700 text-xs text-left">
-                            1. Create lunch invite → Get shareable link<br>
-                            2. Friends click link → RSVP with their name<br>
-                            3. After RSVP → Share updated link to group<br>
-                            4. Everyone uses latest link → See all responses
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-3 mb-6">
+                        <div class="text-green-800 text-sm font-medium mb-1">⚡ Real-Time Updates</div>
+                        <div class="text-green-700 text-xs text-left">
+                            • One shared link for everyone<br>
+                            • Instant RSVP updates - no refreshing needed<br>
+                            • Everyone sees responses in real-time<br>
+                            • Just like WhatsApp groups or Facebook events!
                         </div>
                     </div>
                     
@@ -217,12 +236,12 @@
                         <div id="createdInviteCode" class="text-2xl font-bold text-blue-600 tracking-wider"></div>
                     </div>
                     
-                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
-                        <div class="text-yellow-800 text-sm font-medium mb-1">💡 Sharing Tips</div>
-                        <div class="text-yellow-700 text-xs">
-                            • Share the full link (not just the code)<br>
-                            • When people RSVP, they'll get updated links to share<br>
-                            • Always use the latest shared link to see all responses
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
+                        <div class="text-green-800 text-sm font-medium mb-1">⚡ Real-Time Magic</div>
+                        <div class="text-green-700 text-xs">
+                            • Everyone uses the same link<br>
+                            • RSVPs appear instantly for all<br>
+                            • No sharing updates needed!
                         </div>
                     </div>
                     
@@ -231,7 +250,7 @@
                             📋 Copy Invite Link
                         </button>
                         <div class="text-xs text-gray-600 text-center">
-                            Share this link with friends - they don't need the code!
+                            One link for everyone - real-time updates included!
                         </div>
                         <button id="manageInvite" class="gradient-button text-white px-6 py-2 rounded-lg font-medium w-full">
                             👥 Manage This Lunch
@@ -246,15 +265,6 @@
             <!-- RSVP Screen -->
             <div id="rsvpScreen" class="hidden">
                 <div class="space-y-4">
-                    
-                    <!-- How It Works Notice -->
-                    <div class="card rounded-xl p-4 bg-blue-50 border border-blue-200">
-                        <div class="text-blue-800 text-sm font-medium mb-1">ℹ️ How RSVPs Work</div>
-                        <div class="text-blue-700 text-xs">
-                            After you RSVP, you'll get an updated link to share with the group so everyone can see your response. 
-                            Each person needs to use the latest shared link to see all RSVPs.
-                        </div>
-                    </div>
                 
                     <!-- Lunch Details Card -->
                     <div class="card rounded-xl p-6">
@@ -319,14 +329,7 @@
                                 <div class="text-3xl mb-2">🎉</div>
                                 <h3 class="font-bold text-gray-800 mb-1">RSVP Submitted!</h3>
                                 <p class="text-gray-600 text-sm mb-3">Thanks for letting us know</p>
-                                
-                                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-3">
-                                    <div class="text-yellow-800 text-sm font-medium mb-1">📤 Important: Share Updated Link</div>
-                                    <div class="text-yellow-700 text-xs mb-2">For others to see your RSVP, share this updated link with the group:</div>
-                                    <button id="copyUpdatedLinkAfterRSVP" class="bg-yellow-600 text-white px-4 py-2 rounded text-xs w-full">
-                                        📋 Copy Updated Invite Link
-                                    </button>
-                                </div>
+                                <div class="text-xs text-green-700">Your response is now live for everyone to see!</div>
                             </div>
                         </div>
                     </div>
@@ -335,16 +338,25 @@
                     <div class="card rounded-xl p-4">
                         <div class="flex items-center justify-between mb-3">
                             <h3 class="font-semibold text-gray-800">👥 Who's Coming?</h3>
-                            <button id="shareUpdatedLink" class="bg-blue-500 text-white px-3 py-1 rounded text-xs">📤 Share Latest</button>
-                        </div>
-                        
-                        <div class="text-xs text-gray-600 mb-3">
-                            Showing RSVPs from this link. For latest responses, ask the group to share their updated links.
+                            <div class="flex items-center text-xs text-green-600">
+                                <span class="realtime-indicator mr-1"></span>
+                                Live updates
+                            </div>
                         </div>
                         
                         <div id="attendeesList" class="space-y-2"></div>
                         <div id="noAttendees" class="text-center text-gray-500 py-4 hidden">
                             No RSVPs yet. Be the first to respond!
+                        </div>
+                    </div>
+                    
+                    <!-- Share Button -->
+                    <div class="card rounded-xl p-4 text-center">
+                        <button id="shareInvite" class="bg-blue-500 text-white px-6 py-2 rounded-lg font-medium w-full">
+                            📤 Share This Lunch Invite
+                        </button>
+                        <div class="text-xs text-gray-600 mt-2">
+                            One link for everyone - real-time updates included!
                         </div>
                     </div>
                 </div>
