@@ -116,11 +116,19 @@
                         <button id="backToWelcome" class="text-gray-500 text-sm">← Back</button>
                     </div>
                     
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                        <div class="text-blue-800 text-sm font-medium mb-1">💡 Best Way to Join</div>
+                        <div class="text-blue-700 text-xs">Ask the organizer to share the full invite link - no code needed!</div>
+                    </div>
+                    
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Lunch Code</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Or enter lunch code manually
+                            </label>
                             <input type="text" id="joinCode" placeholder="Enter lunch code (e.g., LUNCH123)" 
                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent uppercase">
+                            <div class="text-xs text-gray-500 mt-1">Note: Only works if you've accessed this lunch before</div>
                         </div>
                         
                         <button id="findLunch" class="gradient-button text-white px-6 py-2 rounded-lg font-medium w-full">
@@ -203,6 +211,9 @@
                         <button id="copyInviteLink" class="bg-blue-500 text-white px-6 py-2 rounded-lg font-medium w-full">
                             📋 Copy Invite Link
                         </button>
+                        <div class="text-xs text-gray-600 text-center">
+                            Share this link with friends - they don't need the code!
+                        </div>
                         <button id="manageInvite" class="gradient-button text-white px-6 py-2 rounded-lg font-medium w-full">
                             👥 Manage This Lunch
                         </button>
@@ -283,7 +294,10 @@
                     
                     <!-- Attendees List -->
                     <div class="card rounded-xl p-4">
-                        <h3 class="font-semibold text-gray-800 mb-3">👥 Who's Coming?</h3>
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="font-semibold text-gray-800">👥 Who's Coming?</h3>
+                            <button id="shareUpdatedLink" class="text-xs text-blue-600 underline">📤 Share Updated</button>
+                        </div>
                         <div id="attendeesList" class="space-y-2"></div>
                         <div id="noAttendees" class="text-center text-gray-500 py-4 hidden">
                             No RSVPs yet. Be the first to respond!
@@ -378,10 +392,47 @@
 
             checkURLParams() {
                 const urlParams = new URLSearchParams(window.location.search);
-                const inviteCode = urlParams.get('invite');
                 
+                // Check for new data format (full invite data in URL)
+                const inviteData = urlParams.get('data');
+                if (inviteData) {
+                    try {
+                        const decodedData = JSON.parse(decodeURIComponent(inviteData));
+                        this.loadInviteFromData(decodedData);
+                        return;
+                    } catch (error) {
+                        console.error('Failed to parse invite data from URL:', error);
+                    }
+                }
+                
+                // Check for old code format (for backward compatibility)
+                const inviteCode = urlParams.get('invite');
                 if (inviteCode) {
                     this.loadInviteByCode(inviteCode);
+                }
+            }
+
+            async loadInviteFromData(inviteData) {
+                this.showLoadingScreen();
+                
+                try {
+                    // Simulate loading delay for better UX
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    
+                    // Merge with any existing local attendees data
+                    const existingInvite = this.getInviteByCode(inviteData.code);
+                    if (existingInvite && existingInvite.attendees) {
+                        inviteData.attendees = existingInvite.attendees;
+                    }
+                    
+                    this.currentInvite = inviteData;
+                    
+                    // Save to local storage for future reference
+                    this.saveInvite(inviteData);
+                    
+                    this.showRSVPScreen();
+                } catch (error) {
+                    this.showErrorScreen('Failed to load lunch invite. Please try again.');
                 }
             }
 
@@ -486,9 +537,19 @@
                 this.showLoadingScreen();
                 
                 try {
-                    await this.loadInviteByCode(code);
+                    // First try to find in local storage
+                    const localInvite = this.getInviteByCode(code);
+                    if (localInvite) {
+                        this.currentInvite = localInvite;
+                        this.showRSVPScreen();
+                        return;
+                    }
+                    
+                    // If not found locally, show helpful message
+                    throw new Error('Lunch invite not found in local storage. Please use the full invite link shared by the organizer.');
+                    
                 } catch (error) {
-                    this.showErrorScreen(`Lunch invite "${code}" not found. Please check the code and try again.`);
+                    this.showErrorScreen(`Lunch invite "${code}" not found. ${error.message}`);
                 }
             }
 
@@ -514,6 +575,11 @@
                 this.updateAttendeesList();
                 this.resetRSVPForm();
                 this.showScreen('rsvpScreen');
+                
+                // Bind the share updated link event handler 
+                // (needed because this screen might be shown multiple times)
+                const shareButton = document.getElementById('shareUpdatedLink');
+                shareButton.onclick = () => this.shareUpdatedLink();
             }
 
             populateInviteDetails() {
@@ -579,6 +645,11 @@
                     return;
                 }
 
+                // Ensure attendees array exists
+                if (!this.currentInvite.attendees) {
+                    this.currentInvite.attendees = [];
+                }
+
                 // Check if person already RSVP'd
                 const existingIndex = this.currentInvite.attendees.findIndex(a => a.name.toLowerCase() === name.toLowerCase());
                 
@@ -596,12 +667,18 @@
                     this.currentInvite.attendees.push(attendee);
                 }
 
-                // Save updated invite
+                // Save updated invite to local storage
                 this.saveInvite(this.currentInvite);
                 
                 // Show success and update UI
                 this.showRSVPSuccess();
                 this.updateAttendeesList();
+                
+                // Also update the URL to include the latest attendee data
+                // This ensures that if someone bookmarks or shares again, attendees are included
+                const inviteData = encodeURIComponent(JSON.stringify(this.currentInvite));
+                const newUrl = `${window.location.origin}${window.location.pathname}?data=${inviteData}`;
+                window.history.replaceState({}, '', newUrl);
             }
 
             showRSVPSuccess() {
@@ -680,7 +757,9 @@
             
             async copyInviteLink() {
                 const baseUrl = window.location.origin + window.location.pathname;
-                const inviteUrl = `${baseUrl}?invite=${this.currentInvite.code}`;
+                // Encode the entire invite data in the URL so it can be shared
+                const inviteData = encodeURIComponent(JSON.stringify(this.currentInvite));
+                const inviteUrl = `${baseUrl}?data=${inviteData}`;
                 
                 try {
                     await navigator.clipboard.writeText(inviteUrl);
@@ -701,6 +780,29 @@
                 } catch (err) {
                     // Fallback for browsers that don't support clipboard API
                     prompt('Copy this link to share your lunch invite:', inviteUrl);
+                }
+            }
+
+            async shareUpdatedLink() {
+                const baseUrl = window.location.origin + window.location.pathname;
+                const inviteData = encodeURIComponent(JSON.stringify(this.currentInvite));
+                const inviteUrl = `${baseUrl}?data=${inviteData}`;
+                
+                try {
+                    await navigator.clipboard.writeText(inviteUrl);
+                    
+                    // Update button text temporarily
+                    const button = document.getElementById('shareUpdatedLink');
+                    const originalText = button.textContent;
+                    button.textContent = '✅ Copied!';
+                    
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                    }, 2000);
+                    
+                } catch (err) {
+                    // Fallback for browsers that don't support clipboard API
+                    prompt('Copy this updated link to share current attendee list:', inviteUrl);
                 }
             }
 
