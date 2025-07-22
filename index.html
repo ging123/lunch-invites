@@ -89,6 +89,16 @@
                     <h2 class="text-2xl font-bold text-gray-800 mb-2">Plan Your Next Lunch!</h2>
                     <p class="text-gray-600 mb-6">Create an invitation, share with friends, and see who's joining</p>
                     
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-6">
+                        <div class="text-blue-800 text-sm font-medium mb-1">💡 How It Works</div>
+                        <div class="text-blue-700 text-xs text-left">
+                            1. Create lunch invite → Get shareable link<br>
+                            2. Friends click link → RSVP with their name<br>
+                            3. After RSVP → Share updated link to group<br>
+                            4. Everyone uses latest link → See all responses
+                        </div>
+                    </div>
+                    
                     <div class="space-y-3">
                         <button id="createNewInvite" class="gradient-button text-white px-6 py-3 rounded-lg font-medium w-full text-lg">
                             ✨ Create New Lunch Invite
@@ -200,11 +210,20 @@
                 <div class="card rounded-xl p-6 text-center">
                     <div class="text-4xl mb-4">🎉</div>
                     <h3 class="text-xl font-bold text-gray-800 mb-2">Lunch Invite Created!</h3>
-                    <p class="text-gray-600 mb-4">Share this with your friends</p>
+                    <p class="text-gray-600 mb-4">Share the link below with your friends</p>
                     
                     <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
                         <div class="text-sm text-gray-600 mb-1">Lunch Code:</div>
                         <div id="createdInviteCode" class="text-2xl font-bold text-blue-600 tracking-wider"></div>
+                    </div>
+                    
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+                        <div class="text-yellow-800 text-sm font-medium mb-1">💡 Sharing Tips</div>
+                        <div class="text-yellow-700 text-xs">
+                            • Share the full link (not just the code)<br>
+                            • When people RSVP, they'll get updated links to share<br>
+                            • Always use the latest shared link to see all responses
+                        </div>
                     </div>
                     
                     <div class="space-y-3">
@@ -227,6 +246,16 @@
             <!-- RSVP Screen -->
             <div id="rsvpScreen" class="hidden">
                 <div class="space-y-4">
+                    
+                    <!-- How It Works Notice -->
+                    <div class="card rounded-xl p-4 bg-blue-50 border border-blue-200">
+                        <div class="text-blue-800 text-sm font-medium mb-1">ℹ️ How RSVPs Work</div>
+                        <div class="text-blue-700 text-xs">
+                            After you RSVP, you'll get an updated link to share with the group so everyone can see your response. 
+                            Each person needs to use the latest shared link to see all RSVPs.
+                        </div>
+                    </div>
+                
                     <!-- Lunch Details Card -->
                     <div class="card rounded-xl p-6">
                         <div id="lunchDetailsCard">
@@ -285,10 +314,20 @@
                         </div>
                         
                         <!-- RSVP Success -->
-                        <div id="rsvpSuccess" class="hidden text-center py-4">
-                            <div class="text-3xl mb-2">🎉</div>
-                            <h3 class="font-bold text-gray-800 mb-1">RSVP Submitted!</h3>
-                            <p class="text-gray-600 text-sm">Thanks for letting us know</p>
+                        <div id="rsvpSuccess" class="hidden">
+                            <div class="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                                <div class="text-3xl mb-2">🎉</div>
+                                <h3 class="font-bold text-gray-800 mb-1">RSVP Submitted!</h3>
+                                <p class="text-gray-600 text-sm mb-3">Thanks for letting us know</p>
+                                
+                                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-3">
+                                    <div class="text-yellow-800 text-sm font-medium mb-1">📤 Important: Share Updated Link</div>
+                                    <div class="text-yellow-700 text-xs mb-2">For others to see your RSVP, share this updated link with the group:</div>
+                                    <button id="copyUpdatedLinkAfterRSVP" class="bg-yellow-600 text-white px-4 py-2 rounded text-xs w-full">
+                                        📋 Copy Updated Invite Link
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     
@@ -296,8 +335,13 @@
                     <div class="card rounded-xl p-4">
                         <div class="flex items-center justify-between mb-3">
                             <h3 class="font-semibold text-gray-800">👥 Who's Coming?</h3>
-                            <button id="shareUpdatedLink" class="text-xs text-blue-600 underline">📤 Share Updated</button>
+                            <button id="shareUpdatedLink" class="bg-blue-500 text-white px-3 py-1 rounded text-xs">📤 Share Latest</button>
                         </div>
+                        
+                        <div class="text-xs text-gray-600 mb-3">
+                            Showing RSVPs from this link. For latest responses, ask the group to share their updated links.
+                        </div>
+                        
                         <div id="attendeesList" class="space-y-2"></div>
                         <div id="noAttendees" class="text-center text-gray-500 py-4 hidden">
                             No RSVPs yet. Be the first to respond!
@@ -685,10 +729,40 @@
                 document.getElementById('rsvpForm').classList.add('hidden');
                 document.getElementById('rsvpSuccess').classList.remove('hidden');
                 
-                // Reset after 3 seconds
+                // Bind the copy updated link button
+                document.getElementById('copyUpdatedLinkAfterRSVP').onclick = () => this.copyUpdatedLink();
+                
+                // Reset after 10 seconds (longer to give time to copy link)
                 setTimeout(() => {
                     this.resetRSVPForm();
-                }, 3000);
+                }, 10000);
+            }
+
+            async copyUpdatedLink() {
+                const baseUrl = window.location.origin + window.location.pathname;
+                const inviteData = encodeURIComponent(JSON.stringify(this.currentInvite));
+                const inviteUrl = `${baseUrl}?data=${inviteData}`;
+                
+                try {
+                    await navigator.clipboard.writeText(inviteUrl);
+                    
+                    // Update button text temporarily
+                    const button = document.getElementById('copyUpdatedLinkAfterRSVP');
+                    const originalText = button.textContent;
+                    button.textContent = '✅ Copied! Share with group';
+                    button.classList.remove('bg-yellow-600');
+                    button.classList.add('bg-green-600');
+                    
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                        button.classList.remove('bg-green-600');
+                        button.classList.add('bg-yellow-600');
+                    }, 3000);
+                    
+                } catch (err) {
+                    // Fallback for browsers that don't support clipboard API
+                    prompt('Copy this updated link and share with your group:', inviteUrl);
+                }
             }
 
             resetRSVPForm() {
@@ -795,14 +869,18 @@
                     const button = document.getElementById('shareUpdatedLink');
                     const originalText = button.textContent;
                     button.textContent = '✅ Copied!';
+                    button.classList.remove('bg-blue-500');
+                    button.classList.add('bg-green-500');
                     
                     setTimeout(() => {
                         button.textContent = originalText;
+                        button.classList.remove('bg-green-500');
+                        button.classList.add('bg-blue-500');
                     }, 2000);
                     
                 } catch (err) {
                     // Fallback for browsers that don't support clipboard API
-                    prompt('Copy this updated link to share current attendee list:', inviteUrl);
+                    prompt('Copy this link with current attendee list and share with your group:', inviteUrl);
                 }
             }
 
