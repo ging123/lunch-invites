@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🍽️ Meal & Gathering Invites</title>
+    <title>🍽️ Lunch Invitations</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
@@ -28,18 +28,12 @@
             background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
         }
         
+        .rsvp-maybe {
+            background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+        }
+        
         .rsvp-no {
             background: linear-gradient(135deg, #F44336 0%, #D32F2F 100%);
-        }
-        
-        .meal-type-btn {
-            transition: all 0.2s ease;
-        }
-        
-        .meal-type-btn.active {
-            background: linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%);
-            color: white;
-            transform: scale(1.05);
         }
         
         .fade-in {
@@ -58,8 +52,8 @@
     <div id="app" class="min-h-screen p-4">
         <!-- Header -->
         <div class="text-center mb-6">
-            <h1 class="text-4xl font-bold text-white mb-2">🍽️ Meal & Gathering Invites</h1>
-            <p class="text-blue-100">Plan any meal or social gathering with friends</p>
+            <h1 class="text-4xl font-bold text-white mb-2">🍽️ Lunch Invitations</h1>
+            <p class="text-blue-100">Easy lunch planning for your friend group</p>
         </div>
 
         <!-- Main Container -->
@@ -68,26 +62,26 @@
             <!-- Welcome Screen -->
             <div id="welcomeScreen">
                 <div class="card rounded-xl p-6 text-center">
-                    <div class="text-6xl mb-4">🎉</div>
-                    <h2 class="text-2xl font-bold text-gray-800 mb-2">Plan Your Next Gathering!</h2>
-                    <p class="text-gray-600 mb-6">Breakfast, lunch, happy hour, dinner, or any social event</p>
+                    <div class="text-6xl mb-4">🥪</div>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-2">Plan Your Next Lunch!</h2>
+                    <p class="text-gray-600 mb-6">Create an invitation, share with friends, and see who's joining</p>
                     
                     <div class="bg-green-50 border border-green-200 rounded-lg p-3 mb-6">
                         <div class="text-green-800 text-sm font-medium mb-1">✨ Simple & Fast</div>
                         <div class="text-green-700 text-xs text-left">
-                            • Create any meal or gathering invite<br>
+                            • Create lunch invites instantly<br>
                             • Share via link or code<br>
-                            • Friends RSVP Yes or No<br>
-                            • See who's coming instantly
+                            • Friends RSVP with their name<br>
+                            • See who's coming in real-time
                         </div>
                     </div>
                     
                     <div class="space-y-3">
                         <button id="createNewInvite" class="gradient-button text-white px-6 py-3 rounded-lg font-medium w-full text-lg">
-                            ✨ Create New Gathering
+                            ✨ Create New Lunch Invite
                         </button>
                         <button id="joinExisting" class="bg-gray-100 text-gray-700 px-6 py-2 rounded-lg font-medium w-full">
-                            🔗 Join Existing Event
+                            🔗 Join Existing Lunch
                         </button>
                     </div>
                 </div>
@@ -97,7 +91,7 @@
             <div id="createScreen" class="hidden">
                 <div class="card rounded-xl p-6">
                     <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-xl font-bold text-gray-800">✨ Create Gathering Invite</h3>
+                        <h3 class="text-xl font-bold text-gray-800">✨ Create Lunch Invite</h3>
                         <button id="backToWelcome" class="text-gray-500 text-sm">← Back</button>
                     </div>
                     
@@ -110,52 +104,41 @@
                         </div>
                         
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Event Type</label>
-                            <div class="grid grid-cols-2 gap-2 mb-3">
-                                <button type="button" class="meal-type-btn bg-gray-100 px-3 py-2 rounded-lg text-sm" data-type="breakfast">🌅 Breakfast</button>
-                                <button type="button" class="meal-type-btn bg-gray-100 px-3 py-2 rounded-lg text-sm" data-type="lunch">🍽️ Lunch</button>
-                                <button type="button" class="meal-type-btn bg-gray-100 px-3 py-2 rounded-lg text-sm" data-type="happy-hour">🍻 Happy Hour</button>
-                                <button type="button" class="meal-type-btn bg-gray-100 px-3 py-2 rounded-lg text-sm" data-type="dinner">🌙 Dinner</button>
-                            </div>
-                            <button type="button" class="meal-type-btn bg-gray-100 px-3 py-2 rounded-lg text-sm w-full" data-type="other">🎪 Other Event</button>
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Event Title</label>
-                            <input type="text" id="eventTitle" required
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Lunch Title</label>
+                            <input type="text" id="lunchTitle" required
                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                                   placeholder="e.g., Team Pizza Dinner">
+                                   placeholder="e.g., Team Pizza Lunch">
                         </div>
                         
                         <div class="grid grid-cols-2 gap-3">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Date</label>
-                                <input type="date" id="eventDate" required
+                                <input type="date" id="lunchDate" required
                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Time</label>
-                                <input type="time" id="eventTime" required
+                                <input type="time" id="lunchTime" required
                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg">
                             </div>
                         </div>
                         
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Location</label>
-                            <input type="text" id="eventLocation" required
+                            <input type="text" id="lunchLocation" required
                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                                   placeholder="e.g., Tony's Restaurant, Downtown">
+                                   placeholder="e.g., Tony's Pizza, Downtown">
                         </div>
                         
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Message (Optional)</label>
-                            <textarea id="eventMessage" rows="3"
+                            <textarea id="lunchMessage" rows="3"
                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg"
                                       placeholder="Add any special details..."></textarea>
                         </div>
                         
                         <button type="submit" class="gradient-button text-white px-6 py-3 rounded-lg font-medium w-full text-lg">
-                            🚀 Create Invite
+                            🚀 Create Lunch Invite
                         </button>
                     </form>
                 </div>
@@ -165,10 +148,10 @@
             <div id="createdScreen" class="hidden">
                 <div class="card rounded-xl p-6 text-center">
                     <div class="text-4xl mb-4">🎉</div>
-                    <h3 class="text-xl font-bold text-gray-800 mb-2">Invite Created!</h3>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Lunch Invite Created!</h3>
                     
                     <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                        <div class="text-sm text-gray-600 mb-1">Event Code:</div>
+                        <div class="text-sm text-gray-600 mb-1">Lunch Code:</div>
                         <div id="inviteCode" class="text-2xl font-bold text-blue-600"></div>
                     </div>
                     
@@ -177,7 +160,7 @@
                             📋 Copy Invite Link
                         </button>
                         <button id="viewInvite" class="gradient-button text-white px-6 py-2 rounded-lg font-medium w-full">
-                            👥 View This Event
+                            👥 View This Lunch
                         </button>
                         <button id="createAnother" class="bg-gray-100 text-gray-700 px-6 py-2 rounded-lg font-medium w-full">
                             ✨ Create Another
@@ -190,19 +173,19 @@
             <div id="joinScreen" class="hidden">
                 <div class="card rounded-xl p-6">
                     <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-xl font-bold text-gray-800">🔗 Join Event</h3>
+                        <h3 class="text-xl font-bold text-gray-800">🔗 Join Lunch</h3>
                         <button id="backFromJoin" class="text-gray-500 text-sm">← Back</button>
                     </div>
                     
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Event Code</label>
-                            <input type="text" id="joinCode" placeholder="Enter code (e.g., EAT123)" 
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Lunch Code</label>
+                            <input type="text" id="joinCode" placeholder="Enter code (e.g., LUNCH123)" 
                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg uppercase">
                         </div>
                         
-                        <button id="findEvent" class="gradient-button text-white px-6 py-2 rounded-lg font-medium w-full">
-                            🔍 Find Event
+                        <button id="findLunch" class="gradient-button text-white px-6 py-2 rounded-lg font-medium w-full">
+                            🔍 Find Lunch
                         </button>
                     </div>
                 </div>
@@ -211,16 +194,16 @@
             <!-- RSVP Screen -->
             <div id="rsvpScreen" class="hidden">
                 <div class="space-y-4">
-                    <!-- Event Details -->
+                    <!-- Lunch Details -->
                     <div class="card rounded-xl p-6">
                         <div class="text-center mb-4">
-                            <div id="eventTypeEmoji" class="text-4xl mb-2">🍽️</div>
-                            <h2 id="eventTitleDisplay" class="text-xl font-bold text-gray-800"></h2>
+                            <div class="text-4xl mb-2">🍽️</div>
+                            <h2 id="lunchTitleDisplay" class="text-xl font-bold text-gray-800"></h2>
                             <p class="text-gray-600">by <span id="organizerDisplay"></span></p>
                             
-                            <!-- Event Code Display -->
+                            <!-- Lunch Code Display -->
                             <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-3 mb-3">
-                                <div class="text-blue-700 text-xs font-medium mb-1">📋 Event Code</div>
+                                <div class="text-blue-700 text-xs font-medium mb-1">📋 Lunch Code</div>
                                 <div id="codeDisplay" class="text-blue-800 font-bold text-lg tracking-wider"></div>
                                 <button id="copyCodeBtn" class="text-blue-600 text-xs underline mt-1">
                                     📋 Copy Code
@@ -253,12 +236,15 @@
                                 <input type="text" id="attendeeName" placeholder="Enter your name"
                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg">
                                 
-                                <div class="grid grid-cols-2 gap-3">
-                                    <button id="rsvpYes" class="rsvp-yes text-white px-4 py-3 rounded-lg font-medium">
-                                        ✅ Yes, I'm Coming!
+                                <div class="grid grid-cols-3 gap-2">
+                                    <button id="rsvpYes" class="rsvp-yes text-white px-4 py-2 rounded-lg font-medium text-sm">
+                                        ✅ Yes
                                     </button>
-                                    <button id="rsvpNo" class="rsvp-no text-white px-4 py-3 rounded-lg font-medium">
-                                        ❌ Can't Make It
+                                    <button id="rsvpMaybe" class="rsvp-maybe text-white px-4 py-2 rounded-lg font-medium text-sm">
+                                        🤔 Maybe
+                                    </button>
+                                    <button id="rsvpNo" class="rsvp-no text-white px-4 py-2 rounded-lg font-medium text-sm">
+                                        ❌ No
                                     </button>
                                 </div>
                                 
@@ -286,7 +272,7 @@
                     
                     <!-- Share Section -->
                     <div class="card rounded-xl p-4">
-                        <h3 class="font-semibold text-gray-800 mb-3 text-center">📤 Share This Event</h3>
+                        <h3 class="font-semibold text-gray-800 mb-3 text-center">📤 Share This Lunch</h3>
                         
                         <div class="space-y-2">
                             <button id="shareInvite" class="bg-blue-500 text-white px-6 py-2 rounded-lg font-medium w-full">
