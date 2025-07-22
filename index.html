@@ -7,66 +7,45 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
         body {
             font-family: 'Inter', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
         }
+        
         .card {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
-        .invite-card {
-            transition: all 0.3s ease;
-        }
-        .invite-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        }
+        
         .gradient-button {
             background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%);
         }
-        .gradient-button:hover {
-            background: linear-gradient(135deg, #E55A2B 0%, #E8851A 100%);
-        }
+        
         .rsvp-yes {
             background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
         }
+        
         .rsvp-maybe {
             background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
         }
+        
         .rsvp-no {
             background: linear-gradient(135deg, #F44336 0%, #D32F2F 100%);
         }
+        
         .fade-in {
             animation: fadeIn 0.5s ease-in;
         }
+        
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        .pulse {
-            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        .attendee-item {
-            transition: all 0.3s ease;
-        }
-        .attendee-item:hover {
-            background-color: rgba(59, 130, 246, 0.05);
-        }
-        .realtime-indicator {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            background-color: #22c55e;
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-        }
+        
+        .hidden { display: none; }
     </style>
 </head>
 <body class="bg-gradient-to-br from-blue-400 via-purple-500 to-purple-600">
@@ -76,96 +55,544 @@
             <h1 class="text-4xl font-bold text-white mb-2">🍽️ Lunch Invitations</h1>
             <p class="text-blue-100">Easy lunch planning for your friend group</p>
         </div>
+
         <!-- Main Container -->
         <div class="max-w-md mx-auto space-y-4">
-            <!-- Welcome/Create Invite Screen -->
-            <div id="welcomeScreen" class="space-y-4">
+            
+            <!-- Welcome Screen -->
+            <div id="welcomeScreen">
                 <div class="card rounded-xl p-6 text-center">
                     <div class="text-6xl mb-4">🥪</div>
                     <h2 class="text-2xl font-bold text-gray-800 mb-2">Plan Your Next Lunch!</h2>
                     <p class="text-gray-600 mb-6">Create an invitation, share with friends, and see who's joining</p>
+                    
                     <div class="bg-green-50 border border-green-200 rounded-lg p-3 mb-6">
-                        <div class="text-green-800 text-sm font-medium mb-1">⚡ Real-Time Updates</div>
+                        <div class="text-green-800 text-sm font-medium mb-1">✨ Simple & Fast</div>
                         <div class="text-green-700 text-xs text-left">
-                            • One shared link for everyone<br>
-                            • Instant RSVP updates - no refreshing needed<br>
-                            • Everyone sees responses in real-time<br>
-                            • Just like WhatsApp groups or Facebook events!
+                            • Create lunch invites instantly<br>
+                            • Share via link or code<br>
+                            • Friends RSVP with their name<br>
+                            • See who's coming in real-time
                         </div>
                     </div>
+                    
                     <div class="space-y-3">
-                        <button id="createNewInvite" class="gradient-button text-white px-6 py-3 rounded-lg font-medium w-full text-lg">✨ Create New Lunch Invite</button>
-                        <button id="joinExisting" class="bg-gray-100 text-gray-700 px-6 py-2 rounded-lg font-medium w-full">🔗 Join Existing Lunch</button>
-                    </div>
-                </div>
-                <div id="recentInvites" class="hidden">
-                    <div class="card rounded-xl p-4">
-                        <h3 class="font-semibold text-gray-800 mb-3">📋 Your Recent Invites</h3>
-                        <div id="recentInvitesList" class="space-y-2"></div>
-                    </div>
-                </div>
-            </div>
-            <!-- Join Existing Invite -->
-            <div id="joinScreen" class="hidden">
-                <div class="card rounded-xl p-6">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-xl font-bold text-gray-800">🔗 Join Lunch</h3>
-                        <button id="backToWelcome" class="text-gray-500 text-sm">← Back</button>
-                    </div>
-                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-                        <div class="text-blue-800 text-sm font-medium mb-1">💡 Best Way to Join</div>
-                        <div class="text-blue-700 text-xs">Ask the organizer to share the full invite link - no code needed!</div>
-                    </div>
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Or enter lunch code manually</label>
-                            <input type="text" id="joinCode" placeholder="Enter lunch code (e.g., LUNCH123)" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent uppercase">
-                            <div class="text-xs text-gray-500 mt-1">Note: Only works if you've accessed this lunch before</div>
-                        </div>
-                        <button id="findLunch" class="gradient-button text-white px-6 py-2 rounded-lg font-medium w-full">🔍 Find Lunch Invite</button>
+                        <button id="createNewInvite" class="gradient-button text-white px-6 py-3 rounded-lg font-medium w-full text-lg">
+                            ✨ Create New Lunch Invite
+                        </button>
+                        <button id="joinExisting" class="bg-gray-100 text-gray-700 px-6 py-2 rounded-lg font-medium w-full">
+                            🔗 Join Existing Lunch
+                        </button>
                     </div>
                 </div>
             </div>
+
             <!-- Create Invite Form -->
             <div id="createScreen" class="hidden">
                 <div class="card rounded-xl p-6">
                     <div class="flex items-center justify-between mb-4">
                         <h3 class="text-xl font-bold text-gray-800">✨ Create Lunch Invite</h3>
-                        <button id="backToWelcomeFromCreate" class="text-gray-500 text-sm">← Back</button>
+                        <button id="backToWelcome" class="text-gray-500 text-sm">← Back</button>
                     </div>
-                    <form id="createInviteForm" class="space-y-4">
+                    
+                    <form id="createForm" class="space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Your Name</label>
-                            <input type="text" id="organizerName" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter your name">
+                            <input type="text" id="organizerName" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                                   placeholder="Enter your name">
                         </div>
+                        
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Lunch Title</label>
-                            <input type="text" id="lunchTitle" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., Team Pizza Lunch">
+                            <input type="text" id="lunchTitle" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                                   placeholder="e.g., Team Pizza Lunch">
                         </div>
+                        
                         <div class="grid grid-cols-2 gap-3">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Date</label>
-                                <input type="date" id="lunchDate" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <input type="date" id="lunchDate" required
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Time</label>
-                                <input type="time" id="lunchTime" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <input type="time" id="lunchTime" required
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg">
                             </div>
                         </div>
+                        
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Location</label>
-                            <input type="text" id="lunchLocation" required class="w-full px-3 py-2	border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., Tony's Pizza, Downtown">
+                            <input type="text" id="lunchLocation" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                                   placeholder="e.g., Tony's Pizza, Downtown">
                         </div>
+                        
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Message (Optional)</label>
-                            <textarea id="lunchMessage" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Add any special details about the lunch..."></textarea>
+                            <textarea id="lunchMessage" rows="3"
+                                      class="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                                      placeholder="Add any special details..."></textarea>
                         </div>
-                        <button type="submit" class="gradient-button text-white px-6 py-3 rounded-lg font-medium w-full text-lg">🚀 Create Lunch Invite</button>
+                        
+                        <button type="submit" class="gradient-button text-white px-6 py-3 rounded-lg font-medium w-full text-lg">
+                            🚀 Create Lunch Invite
+                        </button>
                     </form>
                 </div>
             </div>
-            <!-- Invite Created Success -->
-            <div id="inviteCreatedScreen" class="hidden">
+
+            <!-- Invite Created -->
+            <div id="createdScreen" class="hidden">
                 <div class="card rounded-xl p-6 text-center">
                     <div class="text-4xl mb-4">🎉</div>
-                    <h3 class="text-xl font-bold text-gray-800 mb-2">Lunch Invite Created!</h৩
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Lunch Invite Created!</h3>
+                    
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                        <div class="text-sm text-gray-600 mb-1">Lunch Code:</div>
+                        <div id="inviteCode" class="text-2xl font-bold text-blue-600"></div>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <button id="copyLink" class="bg-blue-500 text-white px-6 py-2 rounded-lg font-medium w-full">
+                            📋 Copy Invite Link
+                        </button>
+                        <button id="viewInvite" class="gradient-button text-white px-6 py-2 rounded-lg font-medium w-full">
+                            👥 View This Lunch
+                        </button>
+                        <button id="createAnother" class="bg-gray-100 text-gray-700 px-6 py-2 rounded-lg font-medium w-full">
+                            ✨ Create Another
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Join Screen -->
+            <div id="joinScreen" class="hidden">
+                <div class="card rounded-xl p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold text-gray-800">🔗 Join Lunch</h3>
+                        <button id="backFromJoin" class="text-gray-500 text-sm">← Back</button>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Lunch Code</label>
+                            <input type="text" id="joinCode" placeholder="Enter code (e.g., LUNCH123)" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg uppercase">
+                        </div>
+                        
+                        <button id="findLunch" class="gradient-button text-white px-6 py-2 rounded-lg font-medium w-full">
+                            🔍 Find Lunch
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RSVP Screen -->
+            <div id="rsvpScreen" class="hidden">
+                <div class="space-y-4">
+                    <!-- Lunch Details -->
+                    <div class="card rounded-xl p-6">
+                        <div class="text-center mb-4">
+                            <div class="text-4xl mb-2">🍽️</div>
+                            <h2 id="lunchTitleDisplay" class="text-xl font-bold text-gray-800"></h2>
+                            <p class="text-gray-600">by <span id="organizerDisplay"></span></p>
+                            
+                            <!-- Lunch Code Display -->
+                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-3 mb-3">
+                                <div class="text-blue-700 text-xs font-medium mb-1">📋 Lunch Code</div>
+                                <div id="codeDisplay" class="text-blue-800 font-bold text-lg tracking-wider"></div>
+                                <button id="copyCodeBtn" class="text-blue-600 text-xs underline mt-1">
+                                    📋 Copy Code
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-3 mb-6">
+                            <div class="flex items-center text-gray-700">
+                                <span class="text-lg mr-3">📅</span>
+                                <span id="dateTimeDisplay"></span>
+                            </div>
+                            <div class="flex items-center text-gray-700">
+                                <span class="text-lg mr-3">📍</span>
+                                <span id="locationDisplay"></span>
+                            </div>
+                            <div id="messageDisplay" class="hidden">
+                                <div class="flex items-start text-gray-700">
+                                    <span class="text-lg mr-3 mt-1">💬</span>
+                                    <span id="messageText"></span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- RSVP Form -->
+                        <div id="rsvpForm" class="border-t pt-4">
+                            <h3 class="font-semibold text-gray-800 mb-3">Will you join us?</h3>
+                            
+                            <div class="space-y-3">
+                                <input type="text" id="attendeeName" placeholder="Enter your name"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                                
+                                <div class="grid grid-cols-3 gap-2">
+                                    <button id="rsvpYes" class="rsvp-yes text-white px-4 py-2 rounded-lg font-medium text-sm">
+                                        ✅ Yes
+                                    </button>
+                                    <button id="rsvpMaybe" class="rsvp-maybe text-white px-4 py-2 rounded-lg font-medium text-sm">
+                                        🤔 Maybe
+                                    </button>
+                                    <button id="rsvpNo" class="rsvp-no text-white px-4 py-2 rounded-lg font-medium text-sm">
+                                        ❌ No
+                                    </button>
+                                </div>
+                                
+                                <button id="submitRSVP" class="gradient-button text-white px-6 py-2 rounded-lg font-medium w-full hidden">
+                                    Submit RSVP
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Success Message -->
+                        <div id="rsvpSuccess" class="hidden text-center py-4">
+                            <div class="text-3xl mb-2">🎉</div>
+                            <h3 class="font-bold text-gray-800">RSVP Submitted!</h3>
+                        </div>
+                    </div>
+                    
+                    <!-- Attendees List -->
+                    <div class="card rounded-xl p-4">
+                        <h3 class="font-semibold text-gray-800 mb-3">👥 Who's Coming?</h3>
+                        <div id="attendeesList"></div>
+                        <div id="noAttendees" class="text-center text-gray-500 py-4">
+                            No RSVPs yet. Be the first!
+                        </div>
+                    </div>
+                    
+                    <!-- Share Section -->
+                    <div class="card rounded-xl p-4">
+                        <h3 class="font-semibold text-gray-800 mb-3 text-center">📤 Share This Lunch</h3>
+                        
+                        <div class="space-y-2">
+                            <button id="shareInvite" class="bg-blue-500 text-white px-6 py-2 rounded-lg font-medium w-full">
+                                🔗 Copy Full Link
+                            </button>
+                            
+                            <div class="text-center">
+                                <div class="text-xs text-gray-600 mb-1">Or share just the code:</div>
+                                <button id="copyShareCode" class="bg-gray-50 hover:bg-gray-100 rounded-lg p-2 inline-block transition-colors">
+                                    <span class="font-mono font-bold text-blue-600" id="shareCodeDisplay"></span>
+                                </button>
+                                <div class="text-xs text-gray-500 mt-1">👆 Click to copy</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        console.log('🍽️ Starting Simple Lunch App...');
+        
+        // Simple app state
+        let currentInvite = null;
+        let selectedResponse = null;
+        
+        // Show/hide screens
+        function showScreen(screenId) {
+            const screens = ['welcomeScreen', 'createScreen', 'createdScreen', 'joinScreen', 'rsvpScreen'];
+            screens.forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById(screenId).classList.remove('hidden');
+        }
+        
+        // Generate invite code
+        function generateCode() {
+            return 'LUNCH' + Math.random().toString(36).substr(2, 3).toUpperCase();
+        }
+        
+        // Generate invite ID
+        function generateId() {
+            return 'invite_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+        }
+        
+        // Save invite to localStorage
+        function saveInvite(invite) {
+            const invites = JSON.parse(localStorage.getItem('lunchInvites') || '[]');
+            const existingIndex = invites.findIndex(i => i.id === invite.id);
+            
+            if (existingIndex >= 0) {
+                invites[existingIndex] = invite;
+            } else {
+                invites.push(invite);
+            }
+            
+            localStorage.setItem('lunchInvites', JSON.stringify(invites));
+        }
+        
+        // Get invite by code
+        function getInviteByCode(code) {
+            const invites = JSON.parse(localStorage.getItem('lunchInvites') || '[]');
+            return invites.find(invite => invite.code === code);
+        }
+        
+        // Update attendees display
+        function updateAttendeesList() {
+            const container = document.getElementById('attendeesList');
+            const noAttendees = document.getElementById('noAttendees');
+            
+            if (!currentInvite.attendees || currentInvite.attendees.length === 0) {
+                container.innerHTML = '';
+                noAttendees.style.display = 'block';
+                return;
+            }
+            
+            noAttendees.style.display = 'none';
+            
+            const grouped = {
+                yes: currentInvite.attendees.filter(a => a.response === 'yes'),
+                maybe: currentInvite.attendees.filter(a => a.response === 'maybe'),
+                no: currentInvite.attendees.filter(a => a.response === 'no')
+            };
+            
+            let html = '';
+            
+            if (grouped.yes.length > 0) {
+                html += `<div class="mb-3">
+                    <div class="text-sm font-medium text-green-700 mb-1">✅ Coming (${grouped.yes.length})</div>
+                    ${grouped.yes.map(a => `<div class="bg-green-50 rounded px-3 py-2 text-sm text-green-800 mb-1">${a.name}</div>`).join('')}
+                </div>`;
+            }
+            
+            if (grouped.maybe.length > 0) {
+                html += `<div class="mb-3">
+                    <div class="text-sm font-medium text-orange-700 mb-1">🤔 Maybe (${grouped.maybe.length})</div>
+                    ${grouped.maybe.map(a => `<div class="bg-orange-50 rounded px-3 py-2 text-sm text-orange-800 mb-1">${a.name}</div>`).join('')}
+                </div>`;
+            }
+            
+            if (grouped.no.length > 0) {
+                html += `<div class="mb-3">
+                    <div class="text-sm font-medium text-red-700 mb-1">❌ Can't make it (${grouped.no.length})</div>
+                    ${grouped.no.map(a => `<div class="bg-red-50 rounded px-3 py-2 text-sm text-red-800 mb-1">${a.name}</div>`).join('')}
+                </div>`;
+            }
+            
+            container.innerHTML = html;
+        }
+        
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('📱 DOM loaded, setting up event listeners...');
+            
+            // Navigation
+            document.getElementById('createNewInvite').addEventListener('click', () => {
+                document.getElementById('lunchDate').valueAsDate = new Date();
+                document.getElementById('lunchTime').value = '12:00';
+                showScreen('createScreen');
+            });
+            
+            document.getElementById('joinExisting').addEventListener('click', () => showScreen('joinScreen'));
+            document.getElementById('backToWelcome').addEventListener('click', () => showScreen('welcomeScreen'));
+            document.getElementById('backFromJoin').addEventListener('click', () => showScreen('welcomeScreen'));
+            
+            // Create invite
+            document.getElementById('createForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const invite = {
+                    id: generateId(),
+                    code: generateCode(),
+                    organizer: document.getElementById('organizerName').value,
+                    title: document.getElementById('lunchTitle').value,
+                    date: document.getElementById('lunchDate').value,
+                    time: document.getElementById('lunchTime').value,
+                    location: document.getElementById('lunchLocation').value,
+                    message: document.getElementById('lunchMessage').value,
+                    attendees: [],
+                    created: new Date().toISOString()
+                };
+                
+                saveInvite(invite);
+                currentInvite = invite;
+                
+                document.getElementById('inviteCode').textContent = invite.code;
+                showScreen('createdScreen');
+            });
+            
+            // After creation
+            document.getElementById('copyLink').addEventListener('click', async function() {
+                const url = `${window.location.origin}${window.location.pathname}?code=${currentInvite.code}`;
+                try {
+                    await navigator.clipboard.writeText(url);
+                    this.textContent = '✅ Copied!';
+                    setTimeout(() => this.textContent = '📋 Copy Invite Link', 2000);
+                } catch (err) {
+                    prompt('Copy this link:', url);
+                }
+            });
+            
+            document.getElementById('viewInvite').addEventListener('click', () => showRSVPScreen());
+            document.getElementById('createAnother').addEventListener('click', () => showScreen('welcomeScreen'));
+            
+            // Join invite
+            document.getElementById('findLunch').addEventListener('click', function() {
+                const code = document.getElementById('joinCode').value.trim().toUpperCase();
+                if (!code) {
+                    alert('Please enter a lunch code');
+                    return;
+                }
+                
+                const invite = getInviteByCode(code);
+                if (!invite) {
+                    alert('Lunch code not found. Please check and try again.');
+                    return;
+                }
+                
+                currentInvite = invite;
+                showRSVPScreen();
+            });
+            
+            // RSVP selection
+            ['Yes', 'Maybe', 'No'].forEach(response => {
+                document.getElementById(`rsvp${response}`).addEventListener('click', function() {
+                    selectedResponse = response.toLowerCase();
+                    
+                    // Reset all buttons
+                    document.querySelectorAll('#rsvpForm button').forEach(btn => {
+                        btn.classList.remove('ring-4', 'ring-white', 'ring-opacity-50');
+                    });
+                    
+                    // Highlight selected
+                    this.classList.add('ring-4', 'ring-white', 'ring-opacity-50');
+                    document.getElementById('submitRSVP').classList.remove('hidden');
+                });
+            });
+            
+            // Submit RSVP
+            document.getElementById('submitRSVP').addEventListener('click', function() {
+                const name = document.getElementById('attendeeName').value.trim();
+                
+                if (!name) {
+                    alert('Please enter your name');
+                    return;
+                }
+                
+                if (!selectedResponse) {
+                    alert('Please select your response');
+                    return;
+                }
+                
+                if (!currentInvite.attendees) currentInvite.attendees = [];
+                
+                // Check if already RSVP'd
+                const existingIndex = currentInvite.attendees.findIndex(a => a.name.toLowerCase() === name.toLowerCase());
+                
+                const attendee = {
+                    name: name,
+                    response: selectedResponse,
+                    timestamp: new Date().toISOString()
+                };
+                
+                if (existingIndex >= 0) {
+                    currentInvite.attendees[existingIndex] = attendee;
+                } else {
+                    currentInvite.attendees.push(attendee);
+                }
+                
+                saveInvite(currentInvite);
+                updateAttendeesList();
+                
+                // Show success
+                document.getElementById('rsvpForm').classList.add('hidden');
+                document.getElementById('rsvpSuccess').classList.remove('hidden');
+                
+                setTimeout(() => {
+                    document.getElementById('rsvpForm').classList.remove('hidden');
+                    document.getElementById('rsvpSuccess').classList.add('hidden');
+                }, 3000);
+            });
+            
+            // Share invite
+            document.getElementById('shareInvite').addEventListener('click', async function() {
+                const url = `${window.location.origin}${window.location.pathname}?code=${currentInvite.code}`;
+                try {
+                    await navigator.clipboard.writeText(url);
+                    this.textContent = '✅ Link Copied!';
+                    setTimeout(() => this.textContent = '🔗 Copy Full Link', 2000);
+                } catch (err) {
+                    prompt('Copy this link:', url);
+                }
+            });
+            
+            // Copy code button
+            document.getElementById('copyCodeBtn').addEventListener('click', async function() {
+                try {
+                    await navigator.clipboard.writeText(currentInvite.code);
+                    this.textContent = '✅ Copied!';
+                    setTimeout(() => this.textContent = '📋 Copy Code', 2000);
+                } catch (err) {
+                    prompt('Copy this code:', currentInvite.code);
+                }
+            });
+            
+            // Copy share code button
+            document.getElementById('copyShareCode').addEventListener('click', async function() {
+                try {
+                    await navigator.clipboard.writeText(currentInvite.code);
+                    const originalHTML = this.innerHTML;
+                    this.innerHTML = '<span class="font-mono font-bold text-green-600">✅ Copied!</span>';
+                    setTimeout(() => this.innerHTML = originalHTML, 2000);
+                } catch (err) {
+                    prompt('Copy this code:', currentInvite.code);
+                }
+            });
+            
+            // Check URL for code parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            const code = urlParams.get('code');
+            if (code) {
+                const invite = getInviteByCode(code);
+                if (invite) {
+                    currentInvite = invite;
+                    showRSVPScreen();
+                }
+            }
+            
+            console.log('✅ Simple Lunch App ready!');
+        });
+        
+        // Show RSVP screen
+        function showRSVPScreen() {
+            // Populate details
+            document.getElementById('lunchTitleDisplay').textContent = currentInvite.title;
+            document.getElementById('organizerDisplay').textContent = currentInvite.organizer;
+            
+            // Display lunch code in multiple places
+            document.getElementById('codeDisplay').textContent = currentInvite.code;
+            document.getElementById('shareCodeDisplay').textContent = currentInvite.code;
+            
+            const date = new Date(currentInvite.date + 'T' + currentInvite.time);
+            document.getElementById('dateTimeDisplay').textContent = 
+                date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) +
+                ' at ' + date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+            
+            document.getElementById('locationDisplay').textContent = currentInvite.location;
+            
+            if (currentInvite.message) {
+                document.getElementById('messageText').textContent = currentInvite.message;
+                document.getElementById('messageDisplay').classList.remove('hidden');
+            }
+            
+            updateAttendeesList();
+            showScreen('rsvpScreen');
+        }
+        
+        console.log('🚀 Simple Lunch App loaded successfully!');
+    </script>
+</body>
+</html>
