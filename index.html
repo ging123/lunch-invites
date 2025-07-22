@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🍽️ Lunch Invitations</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .invite-card {
+            transition: all 0.3s ease;
+        }
+        
+        .invite-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .gradient-button {
+            background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%);
+        }
+        
+        .gradient-button:hover {
+            background: linear-gradient(135deg, #E55A2B 0%, #E8851A 100%);
+        }
+        
+        .rsvp-yes {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+        }
+        
+        .rsvp-maybe {
+            background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+        }
+        
+        .rsvp-no {
+            background: linear-gradient(135deg, #F44336 0%, #D32F2F 100%);
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        .attendee-item {
+            transition: all 0.3s ease;
+        }
+        
+        .attendee-item:hover {
+            background-color: rgba(59, 130, 246, 0.05);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-400 via-purple-500 to-purple-600">
+    <div id="app" class="min-h-screen p-4">
+        <!-- Header -->
+        <div class="text-center mb-6">
+            <h1 class="text-4xl font-bold text-white mb-2">🍽️ Lunch Invitations</h1>
+            <p class="text-blue-100">Easy lunch planning for your friend group</p>
+        </div>
+
+        <!-- Main Container -->
+        <div class="max-w-md mx-auto space-y-4">
+            
+            <!-- Welcome/Create Invite Screen -->
+            <div id="welcomeScreen" class="space-y-4">
+                <div class="card rounded-xl p-6 text-center">
+                    <div class="text-6xl mb-4">🥪</div>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-2">Plan Your Next Lunch!</h2>
+                    <p class="text-gray-600 mb-6">Create an invitation, share with friends, and see who's joining</p>
+                    
+                    <div class="space-y-3">
+                        <button id="createNewInvite" class="gradient-button text-white px-6 py-3 rounded-lg font-medium w-full text-lg">
+                            ✨ Create New Lunch Invite
+                        </button>
+                        <button id="joinExisting" class="bg-gray-100 text-gray-700 px-6 py-2 rounded-lg font-medium w-full">
+                            🔗 Join Existing Lunch
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Recent Invites -->
+                <div id="recentInvites" class="hidden">
+                    <div class="card rounded-xl p-4">
+                        <h3 class="font-semibold text-gray-800 mb-3">📋 Your Recent Invites</h3>
+                        <div id="recentInvitesList" class="space-y-2"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Join Existing Invite -->
+            <div id="joinScreen" class="hidden">
+                <div class="card rounded-xl p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold text-gray-800">🔗 Join Lunch</h3>
+                        <button id="backToWelcome" class="text-gray-500 text-sm">← Back</button>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Lunch Code</label>
+                            <input type="text" id="joinCode" placeholder="Enter lunch code (e.g., LUNCH123)" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent uppercase">
+                        </div>
+                        
+                        <button id="findLunch" class="gradient-button text-white px-6 py-2 rounded-lg font-medium w-full">
+                            🔍 Find Lunch Invite
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Create Invite Form -->
+            <div id="createScreen" class="hidden">
+                <div class="card rounded-xl p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold text-gray-800">✨ Create Lunch Invite</h3>
+                        <button id="backToWelcomeFromCreate" class="text-gray-500 text-sm">← Back</button>
+                    </div>
+                    
+                    <form id="createInviteForm" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Your Name</label>
+                            <input type="text" id="organizerName" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                   placeholder="Enter your name">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Lunch Title</label>
+                            <input type="text" id="lunchTitle" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                   placeholder="e.g., Team Pizza Lunch">
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Date</label>
+                                <input type="date" id="lunchDate" required
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Time</label>
+                                <input type="time" id="lunchTime" required
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Location</label>
+                            <input type="text" id="lunchLocation" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                   placeholder="e.g., Tony's Pizza, Downtown">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Message (Optional)</label>
+                            <textarea id="lunchMessage" rows="3"
+                                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                      placeholder="Add any special details about the lunch..."></textarea>
+                        </div>
+                        
+                        <button type="submit" class="gradient-button text-white px-6 py-3 rounded-lg font-medium w-full text-lg">
+                            🚀 Create Lunch Invite
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Invite Created Success -->
+            <div id="inviteCreatedScreen" class="hidden">
+                <div class="card rounded-xl p-6 text-center">
+                    <div class="text-4xl mb-4">🎉</div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Lunch Invite Created!</h3>
+                    <p class="text-gray-600 mb-4">Share this with your friends</p>
+                    
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                        <div class="text-sm text-gray-600 mb-1">Lunch Code:</div>
+                        <div id="createdInviteCode" class="text-2xl font-bold text-blue-600 tracking-wider"></div>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <button id="copyInviteLink" class="bg-blue-500 text-white px-6 py-2 rounded-lg font-medium w-full">
+                            📋 Copy Invite Link
+                        </button>
+                        <button id="manageInvite" class="gradient-button text-white px-6 py-2 rounded-lg font-medium w-full">
+                            👥 Manage This Lunch
+                        </button>
+                        <button id="createAnother" class="bg-gray-100 text-gray-700 px-6 py-2 rounded-lg font-medium w-full">
+                            ✨ Create Another Invite
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RSVP Screen -->
+            <div id="rsvpScreen" class="hidden">
+                <div class="space-y-4">
+                    <!-- Lunch Details Card -->
+                    <div class="card rounded-xl p-6">
+                        <div id="lunchDetailsCard">
+                            <div class="text-center mb-4">
+                                <div class="text-4xl mb-2">🍽️</div>
+                                <h2 id="displayLunchTitle" class="text-xl font-bold text-gray-800"></h2>
+                                <p class="text-gray-600">Organized by <span id="displayOrganizer" class="font-medium"></span></p>
+                            </div>
+                            
+                            <div class="space-y-3 mb-6">
+                                <div class="flex items-center text-gray-700">
+                                    <span class="text-lg mr-3">📅</span>
+                                    <span id="displayDateTime"></span>
+                                </div>
+                                <div class="flex items-center text-gray-700">
+                                    <span class="text-lg mr-3">📍</span>
+                                    <span id="displayLocation"></span>
+                                </div>
+                                <div id="displayMessageContainer" class="hidden">
+                                    <div class="flex items-start text-gray-700">
+                                        <span class="text-lg mr-3 mt-1">💬</span>
+                                        <span id="displayMessage" class="flex-1"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- RSVP Form -->
+                        <div id="rsvpForm" class="border-t pt-4">
+                            <h3 class="font-semibold text-gray-800 mb-3">Will you be joining us?</h3>
+                            
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Your Name</label>
+                                    <input type="text" id="attendeeName" required
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                           placeholder="Enter your name">
+                                </div>
+                                
+                                <div class="grid grid-cols-3 gap-2">
+                                    <button id="rsvpYes" class="rsvp-yes text-white px-4 py-2 rounded-lg font-medium text-sm">
+                                        ✅ Yes
+                                    </button>
+                                    <button id="rsvpMaybe" class="rsvp-maybe text-white px-4 py-2 rounded-lg font-medium text-sm">
+                                        🤔 Maybe
+                                    </button>
+                                    <button id="rsvpNo" class="rsvp-no text-white px-4 py-2 rounded-lg font-medium text-sm">
+                                        ❌ No
+                                    </button>
+                                </div>
+                                
+                                <button id="submitRSVP" class="gradient-button text-white px-6 py-2 rounded-lg font-medium w-full hidden">
+                                    Submit RSVP
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- RSVP Success -->
+                        <div id="rsvpSuccess" class="hidden text-center py-4">
+                            <div class="text-3xl mb-2">🎉</div>
+                            <h3 class="font-bold text-gray-800 mb-1">RSVP Submitted!</h3>
+                            <p class="text-gray-600 text-sm">Thanks for letting us know</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Attendees List -->
+                    <div class="card rounded-xl p-4">
+                        <h3 class="font-semibold text-gray-800 mb-3">👥 Who's Coming?</h3>
+                        <div id="attendeesList" class="space-y-2"></div>
+                        <div id="noAttendees" class="text-center text-gray-500 py-4 hidden">
+                            No RSVPs yet. Be the first to respond!
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading -->
+            <div id="loadingScreen" class="hidden">
+                <div class="card rounded-xl p-6 text-center">
+                    <div class="pulse text-4xl mb-3">⏳</div>
+                    <div class="font-medium text-gray-800">Loading lunch details...</div>
+                </div>
+            </div>
+
+            <!-- Error Screen -->
+            <div id="errorScreen" class="hidden">
+                <div class="card rounded-xl p-6 text-center">
+                    <div class="text-4xl mb-3">😕</div>
+                    <h3 class="font-bold text-gray-800 mb-2">Oops!</h3>
+                    <p id="errorMessage" class="text-gray-600 mb-4"></p>
+                    <button id="retryButton" class="gradient-button text-white px-6 py-2 rounded-lg font-medium">
+                        Try Again
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // ========================================
+        // 🍽️ LUNCH INVITATION APP
+        // ========================================
+        
+        class LunchInviteApp {
+            constructor() {
+                this.currentInvite = null;
+                this.currentScreen = 'welcome';
+                this.selectedRSVP = null;
+                
+                this.init();
+            }
+
+            // ========================================
+            // 🔧 INITIALIZATION
+            // ========================================
+            
+            init() {
+                this.bindEvents();
+                this.loadRecentInvites();
+                this.checkURLParams();
+            }
+
+            bindEvents() {
+                // Navigation
+                document.getElementById('createNewInvite').addEventListener('click', () => this.showCreateScreen());
+                document.getElementById('joinExisting').addEventListener('click', () => this.showJoinScreen());
+                document.getElementById('backToWelcome').addEventListener('click', () => this.showWelcomeScreen());
+                document.getElementById('backToWelcomeFromCreate').addEventListener('click', () => this.showWelcomeScreen());
+                
+                // Create invite
+                document.getElementById('createInviteForm').addEventListener('submit', (e) => this.createInvite(e));
+                
+                // Join invite
+                document.getElementById('findLunch').addEventListener('click', () => this.findLunch());
+                document.getElementById('joinCode').addEventListener('input', (e) => {
+                    e.target.value = e.target.value.toUpperCase();
+                });
+                
+                // RSVP
+                document.getElementById('rsvpYes').addEventListener('click', () => this.selectRSVP('yes'));
+                document.getElementById('rsvpMaybe').addEventListener('click', () => this.selectRSVP('maybe'));
+                document.getElementById('rsvpNo').addEventListener('click', () => this.selectRSVP('no'));
+                document.getElementById('submitRSVP').addEventListener('click', () => this.submitRSVP());
+                
+                // Post-creation actions
+                document.getElementById('copyInviteLink').addEventListener('click', () => this.copyInviteLink());
+                document.getElementById('manageInvite').addEventListener('click', () => this.manageCurrentInvite());
+                document.getElementById('createAnother').addEventListener('click', () => this.showCreateScreen());
+                
+                // Error handling
+                document.getElementById('retryButton').addEventListener('click', () => this.showWelcomeScreen());
+                
+                // Set default date to today
+                document.getElementById('lunchDate').valueAsDate = new Date();
+                
+                // Set default time to 12:00 PM
+                document.getElementById('lunchTime').value = '12:00';
+            }
+
+            checkURLParams() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const inviteCode = urlParams.get('invite');
+                
+                if (inviteCode) {
+                    this.loadInviteByCode(inviteCode);
+                }
+            }
+
+            // ========================================
+            // 🎯 SCREEN MANAGEMENT
+            // ========================================
+            
+            showScreen(screenId) {
+                // Hide all screens
+                const screens = ['welcomeScreen', 'joinScreen', 'createScreen', 'inviteCreatedScreen', 'rsvpScreen', 'loadingScreen', 'errorScreen'];
+                screens.forEach(screen => {
+                    document.getElementById(screen).classList.add('hidden');
+                });
+                
+                // Show target screen
+                document.getElementById(screenId).classList.remove('hidden');
+                this.currentScreen = screenId;
+            }
+
+            showWelcomeScreen() {
+                this.showScreen('welcomeScreen');
+                this.loadRecentInvites();
+            }
+
+            showCreateScreen() {
+                this.showScreen('createScreen');
+                // Clear form
+                document.getElementById('createInviteForm').reset();
+                document.getElementById('lunchDate').valueAsDate = new Date();
+                document.getElementById('lunchTime').value = '12:00';
+            }
+
+            showJoinScreen() {
+                this.showScreen('joinScreen');
+                document.getElementById('joinCode').value = '';
+            }
+
+            showLoadingScreen() {
+                this.showScreen('loadingScreen');
+            }
+
+            showErrorScreen(message) {
+                document.getElementById('errorMessage').textContent = message;
+                this.showScreen('errorScreen');
+            }
+
+            // ========================================
+            // 📝 INVITE CREATION
+            // ========================================
+            
+            async createInvite(e) {
+                e.preventDefault();
+                
+                const inviteData = {
+                    id: this.generateInviteId(),
+                    code: this.generateInviteCode(),
+                    organizer: document.getElementById('organizerName').value.trim(),
+                    title: document.getElementById('lunchTitle').value.trim(),
+                    date: document.getElementById('lunchDate').value,
+                    time: document.getElementById('lunchTime').value,
+                    location: document.getElementById('lunchLocation').value.trim(),
+                    message: document.getElementById('lunchMessage').value.trim(),
+                    attendees: [],
+                    createdAt: new Date().toISOString()
+                };
+
+                try {
+                    this.saveInvite(inviteData);
+                    this.currentInvite = inviteData;
+                    this.showInviteCreatedScreen();
+                } catch (error) {
+                    this.showErrorScreen('Failed to create invite. Please try again.');
+                }
+            }
+
+            showInviteCreatedScreen() {
+                document.getElementById('createdInviteCode').textContent = this.currentInvite.code;
+                this.showScreen('inviteCreatedScreen');
+            }
+
+            generateInviteId() {
+                return 'invite_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            }
+
+            generateInviteCode() {
+                const prefix = 'LUNCH';
+                const suffix = Math.random().toString(36).substr(2, 3).toUpperCase();
+                return prefix + suffix;
+            }
+
+            // ========================================
+            // 🔍 INVITE LOOKUP & JOINING
+            // ========================================
+            
+            async findLunch() {
+                const code = document.getElementById('joinCode').value.trim();
+                if (!code) {
+                    alert('Please enter a lunch code');
+                    return;
+                }
+
+                this.showLoadingScreen();
+                
+                try {
+                    await this.loadInviteByCode(code);
+                } catch (error) {
+                    this.showErrorScreen(`Lunch invite "${code}" not found. Please check the code and try again.`);
+                }
+            }
+
+            async loadInviteByCode(code) {
+                // Simulate loading delay
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                const invite = this.getInviteByCode(code);
+                if (!invite) {
+                    throw new Error('Invite not found');
+                }
+
+                this.currentInvite = invite;
+                this.showRSVPScreen();
+            }
+
+            // ========================================
+            // 📝 RSVP MANAGEMENT
+            // ========================================
+            
+            showRSVPScreen() {
+                this.populateInviteDetails();
+                this.updateAttendeesList();
+                this.resetRSVPForm();
+                this.showScreen('rsvpScreen');
+            }
+
+            populateInviteDetails() {
+                const invite = this.currentInvite;
+                
+                document.getElementById('displayLunchTitle').textContent = invite.title;
+                document.getElementById('displayOrganizer').textContent = invite.organizer;
+                
+                // Format date and time
+                const date = new Date(invite.date + 'T' + invite.time);
+                const dateStr = date.toLocaleDateString('en-US', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                });
+                const timeStr = date.toLocaleTimeString('en-US', { 
+                    hour: 'numeric', 
+                    minute: '2-digit',
+                    hour12: true 
+                });
+                
+                document.getElementById('displayDateTime').textContent = `${dateStr} at ${timeStr}`;
+                document.getElementById('displayLocation').textContent = invite.location;
+                
+                // Show message if exists
+                if (invite.message) {
+                    document.getElementById('displayMessage').textContent = invite.message;
+                    document.getElementById('displayMessageContainer').classList.remove('hidden');
+                } else {
+                    document.getElementById('displayMessageContainer').classList.add('hidden');
+                }
+            }
+
+            selectRSVP(response) {
+                this.selectedRSVP = response;
+                
+                // Update button styles
+                const buttons = ['rsvpYes', 'rsvpMaybe', 'rsvpNo'];
+                buttons.forEach(buttonId => {
+                    const button = document.getElementById(buttonId);
+                    button.classList.remove('ring-4', 'ring-white', 'ring-opacity-50');
+                });
+                
+                // Highlight selected button
+                const selectedButton = document.getElementById(`rsvp${response.charAt(0).toUpperCase() + response.slice(1)}`);
+                selectedButton.classList.add('ring-4', 'ring-white', 'ring-opacity-50');
+                
+                // Show submit button
+                document.getElementById('submitRSVP').classList.remove('hidden');
+            }
+
+            async submitRSVP() {
+                const name = document.getElementById('attendeeName').value.trim();
+                
+                if (!name) {
+                    alert('Please enter your name');
+                    return;
+                }
+                
+                if (!this.selectedRSVP) {
+                    alert('Please select your response');
+                    return;
+                }
+
+                // Check if person already RSVP'd
+                const existingIndex = this.currentInvite.attendees.findIndex(a => a.name.toLowerCase() === name.toLowerCase());
+                
+                const attendee = {
+                    name: name,
+                    response: this.selectedRSVP,
+                    timestamp: new Date().toISOString()
+                };
+
+                if (existingIndex >= 0) {
+                    // Update existing RSVP
+                    this.currentInvite.attendees[existingIndex] = attendee;
+                } else {
+                    // Add new RSVP
+                    this.currentInvite.attendees.push(attendee);
+                }
+
+                // Save updated invite
+                this.saveInvite(this.currentInvite);
+                
+                // Show success and update UI
+                this.showRSVPSuccess();
+                this.updateAttendeesList();
+            }
+
+            showRSVPSuccess() {
+                document.getElementById('rsvpForm').classList.add('hidden');
+                document.getElementById('rsvpSuccess').classList.remove('hidden');
+                
+                // Reset after 3 seconds
+                setTimeout(() => {
+                    this.resetRSVPForm();
+                }, 3000);
+            }
+
+            resetRSVPForm() {
+                document.getElementById('rsvpForm').classList.remove('hidden');
+                document.getElementById('rsvpSuccess').classList.add('hidden');
+                document.getElementById('attendeeName').value = '';
+                document.getElementById('submitRSVP').classList.add('hidden');
+                this.selectedRSVP = null;
+                
+                // Reset button styles
+                const buttons = ['rsvpYes', 'rsvpMaybe', 'rsvpNo'];
+                buttons.forEach(buttonId => {
+                    const button = document.getElementById(buttonId);
+                    button.classList.remove('ring-4', 'ring-white', 'ring-opacity-50');
+                });
+            }
+
+            updateAttendeesList() {
+                const container = document.getElementById('attendeesList');
+                const noAttendeesMsg = document.getElementById('noAttendees');
+                
+                if (!this.currentInvite.attendees || this.currentInvite.attendees.length === 0) {
+                    container.innerHTML = '';
+                    noAttendeesMsg.classList.remove('hidden');
+                    return;
+                }
+
+                noAttendeesMsg.classList.add('hidden');
+                
+                // Group by response
+                const grouped = {
+                    yes: this.currentInvite.attendees.filter(a => a.response === 'yes'),
+                    maybe: this.currentInvite.attendees.filter(a => a.response === 'maybe'),
+                    no: this.currentInvite.attendees.filter(a => a.response === 'no')
+                };
+
+                let html = '';
+                
+                if (grouped.yes.length > 0) {
+                    html += `<div class="mb-3">
+                        <div class="text-sm font-medium text-green-700 mb-1">✅ Coming (${grouped.yes.length})</div>
+                        ${grouped.yes.map(a => `<div class="attendee-item bg-green-50 rounded-lg px-3 py-2 text-sm text-green-800">${a.name}</div>`).join('')}
+                    </div>`;
+                }
+                
+                if (grouped.maybe.length > 0) {
+                    html += `<div class="mb-3">
+                        <div class="text-sm font-medium text-orange-700 mb-1">🤔 Maybe (${grouped.maybe.length})</div>
+                        ${grouped.maybe.map(a => `<div class="attendee-item bg-orange-50 rounded-lg px-3 py-2 text-sm text-orange-800">${a.name}</div>`).join('')}
+                    </div>`;
+                }
+                
+                if (grouped.no.length > 0) {
+                    html += `<div class="mb-3">
+                        <div class="text-sm font-medium text-red-700 mb-1">❌ Can't make it (${grouped.no.length})</div>
+                        ${grouped.no.map(a => `<div class="attendee-item bg-red-50 rounded-lg px-3 py-2 text-sm text-red-800">${a.name}</div>`).join('')}
+                    </div>`;
+                }
+
+                container.innerHTML = html;
+            }
+
+            // ========================================
+            // 📋 INVITE MANAGEMENT
+            // ========================================
+            
+            async copyInviteLink() {
+                const baseUrl = window.location.origin + window.location.pathname;
+                const inviteUrl = `${baseUrl}?invite=${this.currentInvite.code}`;
+                
+                try {
+                    await navigator.clipboard.writeText(inviteUrl);
+                    
+                    // Update button text temporarily
+                    const button = document.getElementById('copyInviteLink');
+                    const originalText = button.textContent;
+                    button.textContent = '✅ Copied!';
+                    button.classList.remove('bg-blue-500');
+                    button.classList.add('bg-green-500');
+                    
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                        button.classList.remove('bg-green-500');
+                        button.classList.add('bg-blue-500');
+                    }, 2000);
+                    
+                } catch (err) {
+                    // Fallback for browsers that don't support clipboard API
+                    prompt('Copy this link to share your lunch invite:', inviteUrl);
+                }
+            }
+
+            manageCurrentInvite() {
+                this.showRSVPScreen();
+            }
+
+            loadRecentInvites() {
+                const recentInvites = this.getRecentInvites();
+                const container = document.getElementById('recentInvitesList');
+                const recentSection = document.getElementById('recentInvites');
+                
+                if (recentInvites.length === 0) {
+                    recentSection.classList.add('hidden');
+                    return;
+                }
+
+                recentSection.classList.remove('hidden');
+                
+                container.innerHTML = recentInvites.map(invite => {
+                    const date = new Date(invite.date + 'T' + invite.time);
+                    const isUpcoming = date > new Date();
+                    const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                    
+                    return `
+                        <div class="invite-card bg-gray-50 rounded-lg p-3 cursor-pointer hover:bg-gray-100" onclick="app.loadInviteByCode('${invite.code}')">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <div class="font-medium text-gray-800">${invite.title}</div>
+                                    <div class="text-xs text-gray-600">${dateStr} • ${invite.attendees.length} RSVPs</div>
+                                </div>
+                                <div class="text-xs ${isUpcoming ? 'text-blue-600' : 'text-gray-500'}">${invite.code}</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // ========================================
+            // 💾 DATA STORAGE
+            // ========================================
+            
+            saveInvite(invite) {
+                const invites = this.getAllInvites();
+                const existingIndex = invites.findIndex(i => i.id === invite.id);
+                
+                if (existingIndex >= 0) {
+                    invites[existingIndex] = invite;
+                } else {
+                    invites.push(invite);
+                }
+                
+                localStorage.setItem('lunchInvites', JSON.stringify(invites));
+            }
+
+            getAllInvites() {
+                const saved = localStorage.getItem('lunchInvites');
+                return saved ? JSON.parse(saved) : [];
+            }
+
+            getInviteByCode(code) {
+                const invites = this.getAllInvites();
+                return invites.find(invite => invite.code === code);
+            }
+
+            getRecentInvites() {
+                const invites = this.getAllInvites();
+                return invites
+                    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                    .slice(0, 5);
+            }
+        }
+
+        // ========================================
+        // 🚀 APP INITIALIZATION
+        // ========================================
+
+        let app;
+        document.addEventListener('DOMContentLoaded', () => {
+            app = new LunchInviteApp();
+        });
+    </script>
+</body>
+</html>
